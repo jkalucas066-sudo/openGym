@@ -157,9 +157,8 @@ public class AnimationPacksPlugin: CAPPlugin, CAPBridgedPlugin {
             Task {
                 let manager = AssetPackManager.shared
                 out["readable"] = AnimationPacksPlugin.readable(id, probe)
-                if #available(iOS 26.4, *) {
-                    out["status"] = AnimationPacksPlugin.describe(await manager.localStatus(ofAssetPackWithID: id))
-                }
+                // Keep diagnostics compatible with the Xcode 26.3 SDK used for personal builds.
+                out["status"] = AnimationPacksPlugin.readable(id, probe) ? "readable" : "not downloaded"
                 do {
                     let data = try manager.contents(at: FilePath("\(id)/\(probe).webp"), searchingInAssetPackWithID: id, options: .mappedIfSafe)
                     out["probeBytes"] = data.count
