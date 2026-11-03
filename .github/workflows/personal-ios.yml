@@ -12,9 +12,13 @@ permissions:
   contents: read
 jobs:
   iphone:
-    runs-on: macos-26
+    runs-on: macos-15-intel
     timeout-minutes: 45
     steps:
+      - name: Select Xcode 26
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_26.3.app/Contents/Developer
+          xcodebuild -version
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
