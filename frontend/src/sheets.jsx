@@ -1,3 +1,4 @@
+import PersonalExerciseGuide from './components/PersonalExerciseGuide.jsx'
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from './store/useStore.js'
 import { useUI } from './store/useUI.js'
@@ -1174,6 +1175,7 @@ function ExerciseDetail({ ex, close }) {
         calculator would answer "your 1RM is 23 kg" about a number that gets smaller as you get
         stronger (issue #232). Cardio has none for the same kind of reason. */}
     {!isCardio(ex) && !isAssisted(ex) && <OneRM ex={ex} />}
+    <PersonalExerciseGuide exercise={ex} />
     {instrFor(ex).length > 0 &&<><h4 className="sec">{t('How to')}{getLang() !== 'en' && !instrTranslated(ex) && <span className="dim" style={{ textTransform: 'none', letterSpacing: 0 }}> · {t('instructions in English')}</span>}</h4><ol className="steps-list">{instrFor(ex).map((s, i) => <li key={i}>{s}</li>)}</ol></>}
     {/* The catalogue is community-edited (catalogue/README.md): a wrong muscle, a clumsy step or a
         missing translation is one tap from an issue that already names the exercise. */}
@@ -2510,12 +2512,13 @@ export function importPlanFile(f, onRead) {
   rd.readAsText(f)
 }
 
-export const planImportSheet = bundle => ui().openSheet(close => <PlanImport bundle={bundle} close={close} />)
+export const planImportSheet = (bundle, {onApplied} = {}) => ui().openSheet(close => <PlanImport bundle={bundle} close={close} onApplied={onApplied} />)
 
-function PlanImport({ bundle, close }) {
+function PlanImport({ bundle, close, onApplied }) {
   const [schedule, setSchedule] = useState(false)
   const apply = () => {
     update(s => mergePlan(s, bundle, { schedule }))
+    onApplied?.()
     close()
     toast(tn('Added {0} routine to your plan', 'Added {0} routines to your plan', bundle.routineCount))
     nav('/plan')

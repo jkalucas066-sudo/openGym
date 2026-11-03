@@ -1,7 +1,7 @@
 {
-  "appId": "ch.duartesantos.opengym",
-  "appName": "openGym",
-  "webDir": "dist",
+  "appId": "app.jkalucas.personalfitness",
+  "appName": "我的健身教练",
+  "webDir": "dist-ios",
   "backgroundColor": "#0c0e12",
   "android": {
     "allowMixedContent": true

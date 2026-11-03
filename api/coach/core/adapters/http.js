@@ -114,7 +114,10 @@ async function call(fetchImpl, url, init, timeoutMs, signal) {
   if (signal && signal.aborted) ctl.abort();
   const timer = setTimeout(() => ctl.abort(), timeoutMs);
   try {
-    return await fetchImpl(url, { ...init, signal: ctl.signal });
+    const res = await fetchImpl(url, { ...init, signal: ctl.signal });
+    // Non-streaming JSON: keep the deadline through the response body, not just headers.
+    const text = await res.text();
+    return { ok: res.ok, status: res.status, text: async () => text };
   } finally {
     clearTimeout(timer);
     if (signal) signal.removeEventListener('abort', onOuter);
@@ -208,6 +211,8 @@ export function httpAdapter(spec) {
       let chosen = substitutes.get(substituteKey(id, base, asked)) || asked;
 
       let body = spec.body({ model: chosen, prompt, system: system || null, schema: schema || null, maxTokens });
+      // Personal plans need structured output rather than a long reasoning prelude.
+      if (id === 'compatible' && hostOf(base) === 'api.siliconflow.cn') body.enable_thinking = false;
       let triedOtherModel = false;
       let retriedWithStrictSchema = false;
       let retriedWithoutJsonMode = false;

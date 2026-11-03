@@ -74,6 +74,7 @@
  * exercise, weigh-in or favourite the other device had removed meanwhile.
  */
 import { beatsWeight } from './exercises.js'
+import { mergeHealth } from '../../../api/coach/core/personal.js'
 import { bestWeightForEntry } from './history.js'
 import { convertStateUnit, convertBodyWeight } from './units.js'
 import { sanitizeAccent } from './accent.js'
@@ -519,6 +520,10 @@ export function resetIdsOf(...copies) {
  */
 export function sinceReset(S, at, ids) {
   const out = clone(S)
+  if(out.personal){
+    const p=out.personal
+    out.personal=(p._ts||0)>at?{...p,journal:(p.journal||[]).filter(r=>(r._ts||0)>at),reports:(p.reports||[]).filter(r=>(r._ts||0)>at),chats:(p.chats||[]).filter(r=>(r._ts||0)>at),guides:(p.guides||[]).filter(r=>(r._ts||0)>at)}:null
+  }
   if (ids && typeof ids === 'object') {
     for (const [f, key] of Object.entries(RESET_LISTS)) {
       const gone = new Set(list(ids[f]).map(String))
@@ -960,6 +965,7 @@ export function mergeStates(a0, b0, { prefer } = {}) {
       if (isMap(other)) out.coach = mergeCoach(out.coach, other)
     }
   }
+  if (!prefer && (a.personal || b.personal)) out.personal = mergeHealth(a.personal, b.personal)
   if (deleted) out.deleted = deleted; else delete out.deleted
   out._ts = Math.max(a._ts || 0, b._ts || 0)
   if (resetAt) out.resetAt = resetAt

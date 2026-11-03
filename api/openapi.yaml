@@ -177,6 +177,51 @@ security:
   - bearerAuth: []
 
 paths:
+  /api/personal/ai:
+    get:
+      summary: Read the personal assistant provider status without credentials
+      responses:
+        '200':
+          description: Provider, model, real-provider readiness and testing flag
+        '401':
+          description: Sign in required
+  /api/personal/completion:
+    post:
+      summary: Run a personal assistant request using the configured HTTP provider
+      description: Requires a session, rejects the fixture, limits concurrency and daily requests. Credentials never leave the server. This counter is process-local and separate from the original coach queue counter.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt, system]
+              properties:
+                prompt:
+                  type: string
+                  maxLength: 300000
+                system:
+                  type: string
+                  maxLength: 100000
+                maxTokens:
+                  type: integer
+                  minimum: 512
+                  maximum: 8000
+                schema:
+                  type: object
+      responses:
+        '200':
+          description: Model answer text and model identifier
+        '400':
+          description: Invalid request
+        '401':
+          description: Sign in required
+        '409':
+          description: Provider not configured, fixture selected or request already running
+        '429':
+          description: Daily request limit reached
+        '502':
+          description: Provider request failed
   /api/health:
     get:
       tags: [meta]

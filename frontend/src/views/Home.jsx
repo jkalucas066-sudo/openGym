@@ -107,10 +107,13 @@ export default function Home() {
   return <div className="narrow">
     <div className="hdr">
       <SeasonDeco spot="header-bats" />
-      <div><h1>{user ? t('Hi {0}', user.name) : 'openGym'}</h1><div className="sub">{today.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
+      <div><h1>{user ? t('Hi {0}', user.name) : t('Home')}</h1><div className="sub">{today.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
       <button className="iconbtn" onClick={() => nav('/settings')} aria-label={trouble ? t('Settings') + ', ' + t('Connection problem') : t('Settings')}><Icon name="gear" />{trouble && <span className="tab-dot" aria-hidden="true" />}</button>
     </div>
 
+    <button className="card row between" style={{width:'100%',padding:'16px',textAlign:'left',gap:12}} onClick={()=>nav('/personal?panel=chat')}>
+      <span className="row" style={{gap:12}}><span className="lrow-i" style={{background:'var(--acc-soft)',color:'var(--acc)'}}><Icon name="sparkles"/></span><span><span style={{display:'block',fontWeight:600}}>我的 AI 教练</span><span className="small dim">训练计划、动作指导与每周复盘</span></span></span><Icon name="chevronRight"/>
+    </button>
     <div className="card">
       {/* A coach week runs by order, not by weekday, so its progress row stands in for the
           seven dots (components/QueueRow.jsx). The today row below stays as it is: the queue's

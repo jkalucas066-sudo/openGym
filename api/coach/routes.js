@@ -1,3 +1,4 @@
+import { completePersonal } from '../personal-ai.js';
 /* HTTP surface for the Coach — user routes and admin routes.
  *
  * Written as a factory taking server.js's own helpers rather than importing them: the helpers
@@ -27,6 +28,8 @@ const USER_ERROR = {
 const hostOf = url => { try { return url ? new URL(url).host : null; } catch { return null; } };
 const HTTP_FOR = { off: 503, busy: 409, cap: 429, consent: 403, shared: 409, unprivileged: 503 };
 
+
+
 export function coachRoutes({ json, readBody, readSession, requireAdmin }) {
   /** Every user route starts the same way: signed in, feature on, feature reachable. The class
    *  goes beside the words, as enqueue's refusal sends it: the app shows its own translated line
@@ -43,6 +46,15 @@ export function coachRoutes({ json, readBody, readSession, requireAdmin }) {
   };
 
   return {
+    'GET /api/personal/ai': async (req,res) => {
+      const user=readSession(req); if(!user)return json(res,401,{error:'请先登录本地账号'});
+      const cfg=cfgStore.load(), credential=cfgStore.credentialFor(user.id);
+      json(res,200,{provider:cfg.provider,model:cfgStore.modelFor(cfg),ready:cfgStore.isEnabled()&&cfg.provider!=='fixture'&&credential.ok&&adapterFor(cfg.provider)?.spawns===false,testing:cfg.provider==='fixture'});
+    },
+    'POST /api/personal/completion': async (req,res) => {
+      const user=readSession(req); if(!user)return json(res,401,{error:'请先登录本地账号，或配置当前设备的 Key'});
+      try { json(res,200,await completePersonal(user.id,await readBody(req))); }
+      catch(e) { if(!e.status)throw e; json(res,e.status,{error:e.message,errorClass:e.errorClass}); }    },
     /* ------------------------------ user ------------------------------ */
 
     // What the consent screen has to disclose, straight from the module that builds payloads,

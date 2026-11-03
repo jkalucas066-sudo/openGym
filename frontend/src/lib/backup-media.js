@@ -18,6 +18,7 @@
  * and links go through the same gates as everywhere else (sanitizeCustomMedia).
  */
 import { zipStore, readZip, looksLikeZip } from './zip.js'
+import { validateHealth } from '../../../api/coach/core/personal.js'
 import { referencedFiles, normalizeMediaRef, workoutMediaOf, cleanUrl, MEDIA_MIMES } from './media-refs.js'
 import { sniffKind } from './media-sniff.js'
 import { sha256Hex } from './sha256.js'
@@ -45,6 +46,7 @@ Do not unpack and re-zip it: the app reads zips that are stored, not compressed.
  *  else (a workout's list also deduplicated, but not capped: workoutMediaOf caps what shows);
  *  the rest of the state is left as it is. Mutates and returns it. */
 export function sanitizeCustomMedia(state) {
+  if (state.personal) state.personal = validateHealth(state.personal)
   for (const c of Array.isArray(state?.customEx) ? state.customEx : []) {
     if (!c || typeof c !== 'object') continue
     if ('media' in c) { const m = normalizeMediaRef(c.media); if (m) c.media = m; else delete c.media }

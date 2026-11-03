@@ -1,0 +1,52 @@
+name: Personal iPhone IPA (unsigned)
+on:
+  push:
+    branches: [personal-ios-20261103]
+  workflow_dispatch:
+    inputs:
+      basic_signing:
+        description: 'Prepare for personal sideloading without HealthKit/App Groups entitlements'
+        type: boolean
+        default: true
+permissions:
+  contents: read
+jobs:
+  iphone:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run prepare:personal-ios
+        working-directory: frontend
+      - run: npx cap sync ios
+        working-directory: frontend
+      - name: Build iPhone binary
+        env:
+          BASIC_SIGNING: ${{ github.event_name == 'push' || inputs.basic_signing }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [ "$BASIC_SIGNING" = true ]; then args+=("CODE_SIGN_ENTITLEMENTS="); fi
+          xcodebuild -workspace frontend/ios/App/App.xcworkspace -scheme App \
+            -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO "${args[@]}" build
+          mkdir -p build/package/Payload
+          cp -R build/ios/Build/Products/Release-iphoneos/App.app build/package/Payload/
+          cd build/package
+          ditto -c -k --sequesterRsrc --keepParent Payload PersonalFitness-unsigned.ipa
+          echo 'Unsigned IPA: sign before installing. This is NOT an App Store release.' > INSTALL-STATUS.txt
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: PersonalFitness-unsigned
+          path: |
+            build/package/PersonalFitness-unsigned.ipa
+            build/package/INSTALL-STATUS.txt
+          retention-days: 7

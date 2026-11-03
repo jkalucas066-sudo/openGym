@@ -62,13 +62,13 @@ function lazyView(load) {
     return View ? <View {...props} /> : <Suspense fallback={null}><Lazy {...props} /></Suspense>
   }
 }
-const Admin = lazyView(() => import('./views/Admin.jsx'))
 const CoachChat = lazyView(() => import('./views/CoachChat.jsx'))
 const Measurements = lazyView(() => import('./views/Measurements.jsx'))
 const CoachIntake = lazyView(() => import('./views/CoachIntake.jsx'))
 const CoachSetup = lazyView(() => import('./views/CoachSetup.jsx'))
 const StructuralBalance = lazyView(() => import('./views/StructuralBalance.jsx'))
 const ProgressPhotos = lazyView(() => import('./views/ProgressPhotos.jsx'))
+const PersonalHealth = lazyView(() => import('./views/PersonalHealth.jsx'))
 // The tabs and screens past Home (Stats, History, the Library, Settings, ...) as well: a start
 // only needs Home, and these are fetched right behind it the same way.
 const CheckIn = lazyView(() => import('./views/CheckIn.jsx'))
@@ -291,6 +291,8 @@ function Shell() {
   const view = l => (!authed ? <Login /> : needsMobileOnboarding ? <MobileOnboarding /> : permSteps ? <PermissionSteps /> : (
     <Routes location={l}>
       <Route path="/home" element={<Home />} />
+      <Route path="/today" element={<Home />} />
+      <Route path="/personal" element={<PersonalHealth />} />
       {/* Gym check-in — switched off in Settings, the route falls through to the
           catch-all redirect below. */}
       {S.checkIn !== false && <Route path="/checkin" element={<CheckIn />} />}
@@ -313,7 +315,7 @@ function Shell() {
       <Route path="/coach/intake" element={<CoachIntake />} />
       <Route path="/coach/proposal" element={<Navigate to="/coach" replace />} />
       <Route path="/coach/setup" element={<CoachSetup />} />
-      <Route path="/admin" element={user?.admin ? <Admin /> : <Navigate to="/home" replace />} />
+      <Route path="/admin" element={<Navigate to="/personal?panel=ai" replace />} />
       <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>
   ))
@@ -376,8 +378,18 @@ function Page({ loc, render, under = false, scrollY = 0, motion = 'fade' }) {
 
 export default function App() {
   const boot = useStore(s => s.boot)
+  const personalReady = useStore(s => s.ready)
+  useEffect(() => {
+    if (!personalReady) return
+    import('./lib/personal-state.js').then(m => m.migratePersonal()).catch(() => {})
+  }, [personalReady])
   useEffect(() => { boot() }, [boot])
   useEffect(() => { prefetchViews() }, [])
+  useEffect(() => {
+    let stop, gone=false
+    import('./lib/personal-schedule.js').then(m=>{if(!gone)stop=m.startPersonalSchedule(useStore.getState)})
+    return()=>{gone=true;stop?.()}
+  }, [])
   // Android system back — sheet, then page, then press-again-to-exit (see lib/back.js)
   useEffect(() => {
     let stop = null, gone = false

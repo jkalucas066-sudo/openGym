@@ -39,6 +39,22 @@ const env = { ANTHROPIC_API_KEY: 'sk-ant-1', OPENAI_API_KEY: 'sk-oa-1', GEMINI_A
 const cfgCompat = { provider: 'compatible', providerOptions: { compatible: { baseUrl: 'http://ollama.lan:11434/' } } };
 const ANSWER = '{"coach_contract":1,"nochange":true,"reading":"fine"}';
 
+test('the timeout also bounds a response whose headers arrived but body stalled', async () => {
+  const fetch = async (_, { signal }) => ({ ok: true, status: 200, text: () => new Promise((_, reject) => {
+    signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })), { once: true });
+  }) });
+  const result = await compatible.invoke({ cfg: cfgCompat, prompt: 'test', model: 'test', fetch, timeoutMs: 20 });
+  assert.equal(result.timedOut, true);
+});
+
+test('SiliconFlow structured generation disables thinking without affecting other endpoints', async () => {
+  const fetch = fakeFetch([ok({ choices: [{ message: { content: ANSWER }, finish_reason: 'stop' }] })]);
+  await compatible.invoke({ cfg: { providerOptions: { compatible: { baseUrl: 'https://api.siliconflow.cn/v1' } } }, env, prompt: 'test', model: 'test', fetch });
+  assert.equal(fetch.calls[0].body.enable_thinking, false);
+  await compatible.invoke({ cfg: cfgCompat, prompt: 'test', model: 'test', fetch });
+  assert.equal('enable_thinking' in fetch.calls[1].body, false);
+});
+
 test('the four HTTP adapters spawn nothing and need no runtime', () => {
   for (const a of [anthropic, openai, gemini, compatible]) {
     assert.equal(a.spawns, false, a.id);

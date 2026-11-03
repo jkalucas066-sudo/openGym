@@ -1,0 +1,36 @@
+.personal-health{width:100%;max-width:760px;margin:auto;padding:16px 16px calc(120px + env(safe-area-inset-bottom));color:var(--label);overflow-wrap:anywhere}
+.personal-health *{box-sizing:border-box;min-width:0}
+.personal-health>.hdr{position:relative;align-items:center}
+.personal-health>.hdr h1{font-size:28px;margin:0}
+.personal-health>.hdr .iconbtn{flex:none;width:44px;padding:10px;background:transparent;color:var(--acc)}
+.personal-health>[data-panel]{display:none}
+.personal-health[data-active=profile]>[data-panel=profile],.personal-health[data-active=ai]>[data-panel=ai],.personal-health[data-active=plan]>[data-panel=plan],.personal-health[data-active=journal]>[data-panel=journal],.personal-health[data-active=chat]>[data-panel=chat],.personal-health[data-active=reports]>[data-panel=reports],.personal-health[data-active=backup]>[data-panel=backup]{display:block}
+.personal-health .card{margin:16px 0;padding:20px!important}
+.personal-health h2{font-size:20px;margin:0 0 16px;color:var(--label)}
+.personal-health h3{font-size:18px;margin:20px 0 8px}
+.personal-health p{line-height:1.65;margin:12px 0;color:var(--label-2)}
+.personal-health label{display:block;font-size:15px}
+.personal-health input:not([type=checkbox]):not([type=file]),.personal-health textarea,.personal-health select{display:block;width:100%;min-height:48px;margin:8px 0 16px;padding:12px;border:1px solid var(--sep);border-radius:12px;background:var(--surface-2);color:var(--label);font:inherit;font-size:16px}
+.personal-health textarea{min-height:120px;resize:vertical}
+.personal-health input[type=checkbox]{width:20px;height:20px;accent-color:var(--acc);vertical-align:middle;margin:8px}
+.personal-health label:has(input[type=checkbox]){display:inline-flex;align-items:center}
+.personal-health button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 16px;margin:6px 8px 6px 0;border:0;border-radius:12px;background:var(--acc-soft);color:var(--acc);font:inherit;font-weight:600;cursor:pointer}
+.personal-health button:disabled{opacity:.5;cursor:wait}
+.personal-health :is(button,input,textarea,select,summary):focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.personal-health details{border-top:1px solid var(--sep);margin-top:16px}
+.personal-health summary{cursor:pointer;min-height:44px;padding:12px 0;color:var(--acc)}
+.personal-health pre{max-height:320px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface-2);padding:12px;border-radius:12px;font-size:13px}
+.personal-health [role=status]:empty{display:none}
+.personal-health [role=status]{line-height:1.6}
+.personal-health .coach-tools{position:relative;flex:none;border:0;margin:0}
+.coach-tools>summary{list-style:none;display:grid;place-items:center;width:44px;padding:10px}
+.coach-tools>summary::-webkit-details-marker{display:none}
+.coach-tools>div{position:absolute;right:0;top:48px;width:190px;background:var(--bg-el);border:1px solid var(--sep);border-radius:16px;padding:6px;z-index:30;box-shadow:0 8px 24px #0002}
+.personal-health .coach-tools button{display:flex;justify-content:flex-start;width:100%;margin:0;background:transparent;color:var(--label)}
+.personal-health .coach-tools button:hover{background:var(--surface-2)}
+.coach-shortcuts{display:flex;flex-wrap:wrap;gap:8px}
+.coach-message{margin-top:24px;padding-top:8px;border-top:1px solid var(--sep)}
+.coach-message h3{font-size:17px}
+.coach-report-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.personal-health .coach-shortcuts button{background:var(--surface-2);color:var(--label);font-weight:500;font-size:14px;margin-right:0}
+@media(max-width:480px){.personal-health .card{padding:16px!important}.personal-health>.hdr h1{font-size:25px}}

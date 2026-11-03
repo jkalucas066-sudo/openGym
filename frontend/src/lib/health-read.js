@@ -22,7 +22,7 @@ export const LB_PER_KG = 2.2046226218
 const KG_MIN = 20
 const KG_MAX = 400
 // Packages and bundle ids that are openGym: the app, its test build, the Apple Watch app.
-const OWN = /^ch\.duartesantos\.opengym(\.|$)/
+const OWN = /^(ch\.duartesantos\.opengym|app\.jkalucas\.personalfitness)(\.|$)/
 
 /** Whether a record in the hub is one openGym wrote itself (by its client id or by its origin). */
 export function isOwnRecord(rec) {

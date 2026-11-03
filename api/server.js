@@ -17,6 +17,8 @@ import * as coachConfig from './coach/config.js';
 import * as coachJobs from './coach/jobs.js';
 import { coachRoutes } from './coach/routes.js';
 import { startCadence } from './coach/cadence.js';
+import { startPersonalReports } from './personal-reports.js';
+import { validateHealth } from './coach/core/personal.js';
 import { startWarmup } from './coach/warmup.js';
 import { dayReminderPush, nudgePush, restTimerPush, testPush } from './push-messages.js';
 import { verifyError, isMisconfigured, originHint } from './verify-error.js';
@@ -2492,6 +2494,7 @@ const routes = {
     // the response claimed the next revision.
     const list = v => v == null || Array.isArray(v);
     if (Array.isArray(body.state) || !list(body.state.workouts) || !list(body.state.routines)) return json(res, 400, { error: 'invalid state' });
+    if(body.state.personal){try{body.state.personal=validateHealth(body.state.personal)}catch{return json(res,400,{error:'个人档案格式不正确，请先导出原始资料再检查'})}}
     // The same readers walk every entry (`w.d`, `w.name`). They skip what is not an entry now
     // (`records` above), but nothing should be storing one. Dropped, not refused:
     // such an entry carries nothing worth keeping, whereas a 400 would strand a client whose own
@@ -2937,6 +2940,15 @@ coachJobs.setProposalHook((uid, pending) => {
   });
 });
 startCadence({ users: () => db.users.filter(u => !u.disabled), userNow, skip: uid => !stateSummary(uid)?.consent });
+startPersonalReports({users:()=>db.users.filter(u=>!u.disabled),read:uid=>{const s=readStateStrict(uid);return s===UNREADABLE?null:s},commit:(uid,personal)=>{
+  const state=readStateStrict(uid);if(!state||state===UNREADABLE)return;
+  const at=Math.max(Date.now(),Number(state._ts||0)+1,personal._ts);
+  state.personal=personal;state.edited={...state.edited,personal:at};state._ts=at;
+  state._rev=(Number(state._rev)||0)+1;
+  state._wids=[...(state._wids||[]),...(state._wid?[state._wid]:[])].slice(-WID_KEEP);
+  state._wid=crypto.randomBytes(8).toString('hex');
+  atomicWrite(stateFile(uid),JSON.stringify(state));stateCache.delete(uid);
+}});
 startWarmup();
 
 // node's requestTimeout is one number for every route, and it is half an hour (below) for the
